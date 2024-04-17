@@ -10,6 +10,9 @@ import { MothsRouter } from './routers/moths.router.js';
 import { ErrorsMiddleware } from './middleware/errors.middleware.js';
 import { type PrismaClient } from '@prisma/client';
 import { MothsSqlRepo } from './repositories/moths.sql.repo.js';
+import { UsersController } from './controllers/users.controller.js';
+import { UsersRouter } from './routers/users.router.js';
+import { UsersSqlRepo } from './repositories/users.sql.repo.js';
 
 const debug = createDebug('W7E:app');
 export const createApp = () => {
@@ -27,6 +30,9 @@ export const startApp = (app: Express, prisma: PrismaClient) => {
   const artistsRepo = new ArtistsFsRepo();
   const artistsController = new ArtistsController(artistsRepo);
   const artistsRouter = new ArtistsRouter(artistsController);
+  const usersRepo = new UsersSqlRepo(prisma);
+  const usersController = new UsersController(usersRepo);
+  const usersRouter = new UsersRouter(usersController);
 
   app.use(express.json());
   app.use(morgan('dev'));
@@ -35,6 +41,7 @@ export const startApp = (app: Express, prisma: PrismaClient) => {
 
   app.use('/moths', mothsRouter.router);
   app.use('/artists', artistsRouter.router);
+  app.use('/users', usersRouter.router);
 
   app.use(errorsMiddleware.handle.bind(errorsMiddleware));
 };

@@ -11,4 +11,5 @@ export type MothCreateDto = {
   description: string;
   location: string;
   isExtinct: boolean;
+  collectorId: string;
 };

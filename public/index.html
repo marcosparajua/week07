@@ -20,6 +20,7 @@
       }
       main {
         display: flex;
+        flex-direction: column;
         justify-content: center;
         gap: 2rem;
 
@@ -49,14 +50,15 @@
   </head>
   <body>
     <header>
-      <h1>Moths</h1>
+      <h1>Moths & Artists</h1>
     </header>
     <main>
       <ul id="moth-list"></ul>
+      <ul class="artists-list"></ul>
     </main>
 
     <footer>
-      <address>Moths</address>
+      <address>Moths & Artist</address>
     </footer>
 
     <script>
@@ -75,6 +77,27 @@
 
             listItem.appendChild(description);
             mothList.appendChild(listItem);
+          });
+        })
+        .catch((error) => console.error('Error fetching moth data:', error));
+    </script>
+
+    <script>
+      fetch('/artists')
+        .then((response) => response.json())
+        .then((data) => {
+          const artistList = document.querySelector('.artists-list');
+          data.forEach((artist) => {
+            const ArtistListItem = document.createElement('li');
+
+            const artistHeading = document.createElement('h2');
+            artistHeading.textContent = artist.name;
+            const medium = document.createElement('p');
+            medium.textContent = artist.medium;
+            ArtistListItem.appendChild(artistHeading);
+
+            ArtistListItem.appendChild(medium);
+            artistList.appendChild(ArtistListItem);
           });
         })
         .catch((error) => console.error('Error fetching moth data:', error));

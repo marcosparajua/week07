@@ -15,6 +15,12 @@
     "id": "58f78506-d4bf-4680-a931-74950c8ed5f8",
     "name": "Hito Steyerl",
     "medium": "Video",
+    "isAlive": true
+  },
+  {
+    "id": "a8362260-fcbc-4e4b-a497-8110d7dbe5b9",
+    "name": "Yukio Mishima",
+    "medium": "Literature",
     "isAlive": false
   }
 ]
