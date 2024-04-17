@@ -6,6 +6,7 @@ export const mothCreateDtoSchema = Joi.object<MothCreateDto>({
   description: Joi.string().required(),
   location: Joi.string().default(''),
   isExtinct: Joi.boolean().default(false),
+  collector: Joi.string(),
 });
 
 export const mothUpdateDtoSchema = Joi.object<MothCreateDto>({
@@ -13,4 +14,5 @@ export const mothUpdateDtoSchema = Joi.object<MothCreateDto>({
   description: Joi.string(),
   location: Joi.string(),
   isExtinct: Joi.boolean(),
+  collector: Joi.string(),
 });

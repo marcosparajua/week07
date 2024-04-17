@@ -4,6 +4,8 @@ export type Moth = {
   description: string;
   location: string;
   isExtinct: boolean;
+  collectorId?: string;
+  collector?: string;
 };
 
 export type MothCreateDto = {
@@ -11,5 +13,6 @@ export type MothCreateDto = {
   description: string;
   location: string;
   isExtinct: boolean;
-  collectorId: string;
+  collectorId?: string;
+  collector?: string;
 };

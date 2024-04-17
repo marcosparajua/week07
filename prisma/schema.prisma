@@ -18,8 +18,8 @@ model Moth {
   type String 
   description String
   location String
-  collector User @relation(fields: [collectorId], references: [id])
-  collectorId String
+  collector User? @relation(fields: [collectorId], references: [id])
+  collectorId String?
   isExtinct Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt @default(now())

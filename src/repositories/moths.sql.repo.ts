@@ -1,11 +1,22 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { type Moth, type PrismaClient } from '@prisma/client';
 import createDebug from 'debug';
 import { HttpError } from '../middleware/errors.middleware.js';
 import { type MothCreateDto } from '../entities/moth';
+import {} from '@prisma/client';
 
 const debug = createDebug('W7E:moths :repository:sql');
 
 export class MothsSqlRepo {
+  select: MothCreateDto = {
+    type: '',
+    description: '',
+    location: '',
+    isExtinct: false,
+    collectorId: '',
+    collector: '',
+  };
+
   constructor(private readonly prisma: PrismaClient) {
     debug('Instantiated moths sql repository');
   }
@@ -27,6 +38,14 @@ export class MothsSqlRepo {
         description: true,
         location: true,
         isExtinct: true,
+        collector: {
+          select: {
+            name: true,
+          },
+        },
+        collectorId: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
     if (!moth) {
@@ -38,7 +57,14 @@ export class MothsSqlRepo {
 
   async create(data: MothCreateDto) {
     return this.prisma.moth.create({
-      data,
+      data: {
+        type: data.type,
+        description: data.description,
+        location: data.location,
+        isExtinct: data.isExtinct,
+        collectorId: data.collectorId,
+        collector: { connect: { id: data.collectorId } } as any,
+      },
     });
   }
 
@@ -49,7 +75,14 @@ export class MothsSqlRepo {
         where: {
           id,
         },
-        data,
+        data: {
+          type: data.type,
+          description: data.description,
+          location: data.location,
+          isExtinct: data.isExtinct,
+          collectorId: data.collectorId,
+          collector: { connect: { id: data.collectorId } } as any,
+        },
       });
     } catch (error) {
       throw new HttpError(404, 'Not Found', `${id} not found`);
