@@ -1,15 +1,21 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { type NextFunction, type Request, type Response } from 'express';
+
 import createDebug from 'debug';
-import { type UserCreateDto, type User } from '../entities/user.js';
+import {
+  type UserCreateDto,
+  type User,
+  type UserUpdateDto,
+} from '../entities/user.js';
 
 import { HttpError } from '../middleware/errors.middleware.js';
+import { type Request, type Response, type NextFunction } from 'express';
 
 import {
   userCreateDtoSchema,
   userUpdateDtoSchema,
 } from '../entities/user.schema.js';
 import { type UsersSqlRepo } from '../repositories/users.sql.repo.js';
+import { Auth } from '../tools/auth.services.js';
 
 const debug = createDebug('W7E:moths:controller');
 
@@ -38,13 +44,21 @@ export class UsersController {
   }
 
   async create(req: Request, res: Response, next: NextFunction) {
-    const data = req.body as User;
+    const data = req.body as UserCreateDto;
+    if (!data.password || typeof data.password !== 'string') {
+      next(
+        new HttpError(
+          400,
+          'Bad Request',
+          'Password is required and must be a string'
+        )
+      );
+      return;
+    }
 
-    const {
-      error,
+    data.password = await Auth.hash(data.password);
 
-      value,
-    }: { error: Error | undefined; value: UserCreateDto } =
+    const { error, value }: { error: Error | undefined; value: UserCreateDto } =
       userCreateDtoSchema.validate(data, {
         abortEarly: false,
       });
@@ -55,7 +69,7 @@ export class UsersController {
     }
 
     try {
-      const result = await this.repo.create(value);
+      const result = await this.repo.create(data);
       res.status(201);
       res.json(result);
     } catch (error) {
@@ -65,7 +79,10 @@ export class UsersController {
 
   async update(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params;
-    const data = req.body as User;
+    const data = req.body as UserUpdateDto;
+    if (data.password && typeof data.password === 'string') {
+      data.password = await Auth.hash(data.password);
+    }
 
     const { error } = userUpdateDtoSchema.validate(data, {
       abortEarly: false,
@@ -78,6 +95,7 @@ export class UsersController {
 
     try {
       const result = await this.repo.update(id, data);
+      res.status(202);
       res.json(result);
     } catch (error) {
       next(error);
@@ -89,6 +107,40 @@ export class UsersController {
     try {
       const result = await this.repo.delete(id);
       res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async login(req: Request, res: Response, next: NextFunction) {
+    const { email, name, password } = req.body as UserCreateDto;
+    if ((!email && !name) || !password) {
+      next(
+        new HttpError(
+          400,
+          'Bad Request',
+          'Email/name and password are required'
+        )
+      );
+      return;
+    }
+
+    try {
+      const user = await this.repo.searchForLogin(
+        email ? 'email' : 'name',
+        email || name
+      );
+
+      if (!user || !(await Auth.compare(password, user.password))) {
+        next(new HttpError(401, 'Unauthorized', 'Invalid credentials'));
+        return;
+      }
+
+      const token = Auth.signJwt({
+        id: user.id,
+        role: user.role,
+      });
+      res.status(200).json({ token });
     } catch (error) {
       next(error);
     }

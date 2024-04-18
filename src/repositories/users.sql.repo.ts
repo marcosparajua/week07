@@ -1,12 +1,18 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { type PrismaClient, type User } from '@prisma/client';
 import createDebug from 'debug';
 import { HttpError } from '../middleware/errors.middleware.js';
 import { type UserCreateDto } from '../entities/user.js';
 
 const debug = createDebug('W7E:users :repository:sql');
+
+const select = {
+  email: true,
+  name: true,
+  role: true,
+  createdAt: true,
+  updatedAt: true,
+  moths: true,
+};
 
 export class UsersSqlRepo {
   constructor(private readonly prisma: PrismaClient) {
@@ -67,5 +73,37 @@ export class UsersSqlRepo {
         id,
       },
     });
+  }
+
+  async search(key: string, value: unknown) {
+    return this.prisma.user.findMany({
+      where: {
+        [key]: value,
+      },
+      select,
+    });
+  }
+
+  async searchForLogin(key: 'email' | 'name', value: string) {
+    if (!['email', 'name'].includes(key)) {
+      throw new HttpError(404, 'Not found', 'Invalid parameters');
+    }
+
+    const userData = await this.prisma.user.findFirst({
+      where: { [key]: value },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        password: true,
+      },
+    });
+
+    if (!userData) {
+      throw new HttpError(404, 'Not Found', `Invalid ${key} or password`);
+    }
+
+    return userData;
   }
 }

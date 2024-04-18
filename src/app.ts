@@ -13,6 +13,7 @@ import { MothsSqlRepo } from './repositories/moths.sql.repo.js';
 import { UsersController } from './controllers/users.controller.js';
 import { UsersRouter } from './routers/users.router.js';
 import { UsersSqlRepo } from './repositories/users.sql.repo.js';
+import { AuthInterceptor } from './middleware/auth.interceptor.js';
 
 const debug = createDebug('W7E:app');
 export const createApp = () => {
@@ -23,16 +24,17 @@ export const createApp = () => {
 
 export const startApp = (app: Express, prisma: PrismaClient) => {
   debug('Starting app');
+  const authInterceptor = new AuthInterceptor();
   const mothsRepo = new MothsSqlRepo(prisma);
   const mothsController = new MothsController(mothsRepo);
-  const mothsRouter = new MothsRouter(mothsController);
+  const mothsRouter = new MothsRouter(mothsController, authInterceptor);
   const errorsMiddleware = new ErrorsMiddleware();
   const artistsRepo = new ArtistsFsRepo();
   const artistsController = new ArtistsController(artistsRepo);
   const artistsRouter = new ArtistsRouter(artistsController);
   const usersRepo = new UsersSqlRepo(prisma);
   const usersController = new UsersController(usersRepo);
-  const usersRouter = new UsersRouter(usersController);
+  const usersRouter = new UsersRouter(usersController, authInterceptor);
 
   app.use(express.json());
   app.use(morgan('dev'));
