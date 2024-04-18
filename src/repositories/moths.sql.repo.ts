@@ -6,17 +6,21 @@ import { type MothCreateDto } from '../entities/moth';
 import {} from '@prisma/client';
 
 const debug = createDebug('W7E:moths :repository:sql');
+const select = {
+  type: true,
+  description: true,
+  location: true,
+  isExtinct: true,
+  collectorId: true,
+  collector: {
+    select: {
+      name: true,
+      email: true,
+    },
+  },
+};
 
 export class MothsSqlRepo {
-  select: MothCreateDto = {
-    type: '',
-    description: '',
-    location: '',
-    isExtinct: false,
-    collectorId: '',
-    collector: '',
-  };
-
   constructor(private readonly prisma: PrismaClient) {
     debug('Instantiated moths sql repository');
   }
@@ -33,20 +37,7 @@ export class MothsSqlRepo {
       where: {
         id,
       },
-      select: {
-        type: true,
-        description: true,
-        location: true,
-        isExtinct: true,
-        collector: {
-          select: {
-            name: true,
-          },
-        },
-        collectorId: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select,
     });
     if (!moth) {
       throw new HttpError(404, 'Not Found', ` ${id} not found`);
@@ -65,6 +56,7 @@ export class MothsSqlRepo {
         collectorId: data.collectorId,
         collector: { connect: { id: data.collectorId } } as any,
       },
+      select,
     });
   }
 
